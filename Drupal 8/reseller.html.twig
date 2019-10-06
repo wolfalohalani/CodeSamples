@@ -1,0 +1,49 @@
+{#
+/**
+ * @file
+ * Default theme implementation to display a reseller.
+ *
+ * Available variables:
+ * - name: The name of the reseller.
+ * - address: The address of the store.
+ * - city: The city the store is in.
+ * - zip: The zipcode of the store.
+ * - hours: Hours the store is open.
+ * - website: URL for the reseller's website
+ *
+ * @ingroup themeable
+ */
+#}
+
+<table cellspacing='5' width='700'>
+  <tr>
+    <td width=20%>{{ 'Company:'|t }}</td>
+	<td><b>{{items.name}}</b></td>
+  </tr>
+  <tr>
+    <td>{{ 'Address:'|t}}</td>
+	<td>{{items.address}}</td>
+  </tr>
+  <tr>
+    <td></td>
+	<td>{{items.city}}, {{items.state}}&nbsp;{{items.zip}}</td>
+  </tr>
+  <tr>
+    <td>{{ 'Phone:'|t }}</td>
+	<td>{{items.phone}}</td>
+  </tr>
+  <tr>
+    <td>{{ 'Website:'|t }}</td>
+	<td><a href='http://{{items.website}}' target='_blank'> {{items.website}}</a></td>
+  </tr>
+  <tr valign=top>
+    <td>Hours:&nbsp;&nbsp;</td>
+	<td >{{items.hours}}</td>
+  </tr>
+  <tr>
+    <td><a href='http://maps.google.com?q={{items.address}} {{items.city}}, {{items.state}} {{items.zip}}' target='top'>click here for a map</a><td>
+  <tr>
+</table>
+<p>
+<hr>
+

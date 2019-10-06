@@ -1,0 +1,165 @@
+<?php
+ 
+/**
+ * @file
+ * Page for the PH acidity quiz - uses some simple rules to calculate acidity score
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function phrules_menu() {
+  $items['phquiz'] = array(
+                'title' => 'Rules Demoo',
+                'type' => MENU_CALLBACK,
+                'access arguments' => array('access content'),
+                'access callback' => 'user_access',
+                'page callback' => 'salurules_quizpage',
+  );
+
+  return $items;
+}
+
+/**
+ * Page to display PH acidity assessment quiz.
+ *
+ */
+function phrules_quizpage($embed = false) {
+
+  global $user;
+  drupal_add_css(drupal_get_path('module','phrules').'/phrules.css');
+
+  // if they've taken the quiz before, find their node, if not, create a new one
+  $sth = db_select('node','n')
+         ->fields('n')
+         ->condition('uid',$user->uid)
+         ->condition('type','phtest')
+         ->execute()->fetchAll();
+	
+  $match = false;
+  foreach ($sth as $d) {
+    if ($d->nid) { 
+	  $match = $d->nid;
+	}
+  } 
+
+  // if we find a match, load the node, otherwise make a new one	
+  if ($match !== false) {
+    $node = node_load($match);
+  } else {
+    $node = new stdClass;
+    $node->is_new = true;
+    $node->title = "pH Acid Balance Assessment - $user->uid";
+    $node->type = "phtest";
+    $node->language = LANGUAGE_NONE; // Or 'en' if locale is enabled
+    node_object_prepare($node); // Sets some defaults. Invokes hook_prepare() and hook_node_prepare().
+    $node->uid = $user->uid; 
+    $node->status = 1;   //(1 or 0): published or not
+    $node->promote = 0;  // promote to home page or not
+    $node->nid = NULL;
+    $node->comment = 0;	  // allow comments or not	
+    $node->type = "phtest";
+		
+    node_save($node);
+		
+    // we do this after the save because these won't take without an nid 
+
+    $node->field_total_score['und'][0]['value']           = 0;
+    $node->field_total_diet_score['und'][0]['value']      = 0;
+    $node->field_total_metabolic_score['und'][0]['value'] = 0;
+    $node->field_total_drug_score['und'][0]['value']      = 0;
+    $node->field_total_disease_score['und'][0]['value']   = 0;
+
+    // and save again to capture the defaults		
+    node_save($node);
+  }
+
+  module_load_include('inc', 'node', 'node.pages');    
+  $node->type = "phtest";
+
+  $form = drupal_get_form("phtest_node_form", $node);
+
+  // set this so we can do some error checking and save the data
+  $form['actions']['submit']['#submit'][0] = "salurules_node_submit";
+
+  $content = drupal_render($form);
+  $content =  _addReferenceLinks($content);
+ 
+  // add a divider and then the score if there is one yet
+  $content .=  "<HR>";
+  $node = node_load($node->nid);
+  $content .=  drupal_render(node_view($node));
+ 
+  return $content;
+}
+
+/**
+ * Form submission handler for assessment form.
+ *
+ * @see node_form()
+ * @see node_form_validate()
+ */
+function phrules_node_submit($form, &$form_state) {
+
+  $node = $form_state['#node'];
+  node_save($node);
+  cache_clear_all();
+  drupal_goto("phquiz");
+}
+
+/**
+ * Add some pretty to the page 
+ */
+function _addDivTags($content) {
+
+  $seperator = "\n";  
+  $newcontent = ""; // what we end up with
+  
+  $i = 1;
+  $pieces = explode($seperator, $content);
+  $size = count($pieces) + 1;
+  $urllen = 0;
+  foreach ($pieces as $piece) {
+    if ($i == 126) {
+      $newcontent .= "<HR>";
+    }
+    if ($i == 145) {
+      $newcontent .= "<HR>";
+    }
+    $newcontent .= $piece;
+    $i++;
+  }
+  return $newcontent;
+}
+
+/**
+ * Add the links to the page for pubmed references
+ *
+ */
+function _addReferenceLinks($content) {
+
+  $refsite = variable_get("refsite", "http://www.ncbi.nlm.nih.gov/pubmed/");
+  $pmid = ""; // we find this by parsing below...
+  $seperator = "~";  // put this character both before and after the pmid
+  $newcontent = ""; // what we end up with
+
+  $img = drupal_get_path('module','phrules').'/logo_pubmed.gif';
+
+  $i = 1;
+  $pieces = explode($seperator, $content);
+  $size = count($pieces) + 1;
+  $urllen = 0;
+  foreach ($pieces as $piece) {
+    if ( $i % 2 != 0 ) {
+        $tag = " <a href='" . $refsite;
+        $urllen = strlen($tag) * -1;
+        $newcontent .= $piece . $tag;
+    } else {
+      $newcontent .= $piece . "' target='_blank'><img id='pmidimg' src='"  . $img . "' width=16 height=16></a>";
+    }
+    $i++;
+  }
+  $newcontent = substr($newcontent, 0, $urllen);
+
+  return $newcontent;
+}

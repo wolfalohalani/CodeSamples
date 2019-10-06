@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Contains Drupal\reseller_entity\reseller__entity.module.
+ */
+
+/**
+ * @defgroup reseller_ entity
+ * @ingroup my_samplecode
+ * @{
+ * Implement a content entity for resellers.
+ *
+ */
+
+
+/**
+ * Implements hook_theme().
+ */
+function reseller_entity_theme() {
+  return [
+    'reseller' => [
+      'variables' => ['items' => []],
+    ]
+  ];
+}
+
