@@ -27,7 +27,7 @@ class ResellerEntityController extends ControllerBase {
 
     $query = null;
     $markup = "";
-	$state = "";
+    $state = "";
     $state = $_GET['state'];
 
     $title = $this->t("Our Resellers");
@@ -55,10 +55,8 @@ class ResellerEntityController extends ControllerBase {
         $oldstate = $state;
       }
       $view_builder = \Drupal::entityManager()->getViewBuilder('reseller_entity_reseller');
- //     $markup = $state . "<P>";
       $markup = $view_builder->view($reseller, "wheretobuy");
       $resellerText .= $markup["#markup"];
-
     }
 
     return [
@@ -66,12 +64,10 @@ class ResellerEntityController extends ControllerBase {
       '#markup' => '<p>' . $resellerText . '</p>',
       ];
     }
-
 //end of the class
 }
 
 // little utility function to get a state name from the two letter code
-
 function getStateName($abbrev) {
   switch ($abbrev) {
     case "AB":
