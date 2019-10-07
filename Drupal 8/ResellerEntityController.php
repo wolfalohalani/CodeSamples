@@ -25,13 +25,10 @@ class ResellerEntityController extends ControllerBase {
 
   public function wheretobuy() {
 
-    //hopefully this will keep the page from being cached
- //   \Drupal::service('page_cache_kill_switch')->trigger();
-
     $query = null;
     $markup = "";
-//    $state = $_GET['state'];
-    $state = "";
+	$state = "";
+    $state = $_GET['state'];
 
     $title = $this->t("Our Resellers");
 
